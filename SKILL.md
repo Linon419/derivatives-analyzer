@@ -1,0 +1,116 @@
+---
+name: derivatives-analyzer
+description: |
+  OpenBB-based derivatives trading analysis toolkit covering crypto perpetual contracts, crypto options, and US equity options. Use when analyzing: (1) Crypto perpetuals - funding rates, open interest, mark price via Deribit; (2) BTC/ETH/SOL options - Greeks, IV surface, option chains; (3) US stock options - SPY/AAPL/NVDA chains, Greeks visualization, unusual activity detection; (4) Any derivatives Greeks analysis (delta, gamma, theta, vega); (5) Implied volatility and options pricing. Triggers: "analyze BTC perpetual", "show ETH options", "SPY options chain", "Greeks analysis", "IV surface", "funding rate", "options Greeks", "straddle price".
+---
+
+# Derivatives Analyzer
+
+OpenBB-powered derivatives analysis for crypto and equity markets.
+
+## Prerequisites
+
+```bash
+pip install openbb openbb-deribit
+```
+
+## Quick Start
+
+```python
+from openbb import obb
+obb.user.preferences.output_type = "dataframe"
+```
+
+## Supported Assets
+
+| Category | Symbols | Provider |
+|----------|---------|----------|
+| Crypto Perpetuals | BTC, ETH, SOL, XRP, BNB | Deribit |
+| Crypto Options | BTC, ETH, SOL | Deribit |
+| US Equity Options | Any US stock | CBOE, yfinance |
+
+## Core Workflows
+
+### 1. Crypto Perpetual Analysis
+
+```python
+# Get perpetual stats
+info = obb.derivatives.futures.info(provider='deribit', symbol='BTC')
+# Returns: last_price, funding_rate, open_interest, volume, mark_price
+
+# List all instruments
+instruments = obb.derivatives.futures.instruments(provider='deribit')
+```
+
+Key metrics: `current_funding`, `funding_8h`, `open_interest`, `mark_price`, `volume_usd`
+
+### 2. Crypto Options Analysis
+
+```python
+chains = obb.derivatives.options.chains(symbol='BTC', provider='deribit')
+# Filter params: option_type, moneyness, strike_gt/lt, oi_gt, volume_gt
+```
+
+For Greeks filtering pattern, see [references/greeks-filtering.md](references/greeks-filtering.md).
+
+### 3. US Equity Options Analysis
+
+```python
+chains = obb.derivatives.options.chains(symbol='SPY', provider='cboe')
+price = chains['underlying_price'].iloc[0]
+
+# Filter valid Greeks (critical step)
+valid = chains[(chains['dte'] >= 7) & (chains['dte'] <= 60) & (chains['delta'] != 0)]
+```
+
+For complete workflow, see [references/equity-options.md](references/equity-options.md).
+
+## Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/perpetual_analysis.py` | Crypto perpetual funding & OI analysis |
+| `scripts/options_greeks.py` | Options Greeks analysis & visualization |
+| `scripts/iv_surface.py` | Implied volatility surface plotting |
+
+## References
+
+- [greeks-filtering.md](references/greeks-filtering.md) - Greeks data filtering patterns
+- [equity-options.md](references/equity-options.md) - US equity options workflow
+- [crypto-derivatives.md](references/crypto-derivatives.md) - Crypto derivatives guide
+
+## Common Patterns
+
+### Filter ATM Options (±5%)
+
+```python
+atm = chains[(chains['strike'] >= price * 0.95) & (chains['strike'] <= price * 1.05)]
+calls = atm[atm['option_type'] == 'call']
+puts = atm[atm['option_type'] == 'put']
+```
+
+### Calculate Straddle Cost
+
+```python
+straddle = options.results.straddle(days=expiry)
+cost = straddle.loc["Cost"].values[0]
+dte = straddle.loc["DTE"].values[0]
+implied_move = ((1 + cost / price) ** (1 / dte) - 1) * 100
+```
+
+## Error Handling
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `No data found` | Invalid symbol | Verify symbol format (e.g., 'BTC' not 'BTC-USD') |
+| `Provider not available` | Missing extension | Run `pip install openbb-deribit` |
+| `Empty DataFrame` | Market closed | Check market hours; try different expiration |
+| `KeyError: 'delta'` | Greeks unavailable | Use provider with Greeks (cboe > yfinance) |
+
+## Rate Limits
+
+| Provider | Limit | Notes |
+|----------|-------|-------|
+| Deribit | 20 req/sec | No API key for public data |
+| CBOE | Generous | No explicit limit |
+| yfinance | ~2000/hour | May throttle on heavy use |
