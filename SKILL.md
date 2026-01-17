@@ -1,7 +1,7 @@
 ---
 name: derivatives-analyzer
 description: |
-  OpenBB-based derivatives trading analysis toolkit covering crypto perpetual contracts, crypto options, and US equity options. Use when analyzing: (1) Crypto perpetuals - funding rates, open interest, mark price via Deribit; (2) BTC/ETH/SOL options - Greeks, IV surface, option chains; (3) US stock options - SPY/AAPL/NVDA chains, Greeks visualization, unusual activity detection; (4) Any derivatives Greeks analysis (delta, gamma, theta, vega); (5) Implied volatility and options pricing. Triggers: "analyze BTC perpetual", "show ETH options", "SPY options chain", "Greeks analysis", "IV surface", "funding rate", "options Greeks", "straddle price".
+  OpenBB-based derivatives trading analysis toolkit covering crypto perpetual contracts, crypto options, and US equity options. Use when analyzing: (1) Crypto perpetuals - funding rates, open interest, mark price via Deribit; (2) BTC/ETH/SOL options - Greeks, IV surface, option chains; (3) US stock options - SPY/AAPL/NVDA chains, Greeks visualization, unusual activity detection; (4) Any derivatives Greeks analysis (delta, gamma, theta, vega); (5) Implied volatility and options pricing; (6) Volatility trading strategies - VRP, term structure, skew, fly, straddle delta hedge, calendar spreads, smile carry. Triggers: "analyze BTC perpetual", "show ETH options", "SPY options chain", "Greeks analysis", "IV surface", "funding rate", "options Greeks", "straddle price", "vol signals", "VRP analysis", "term structure", "skew analysis", "volatility trading".
 ---
 
 # Derivatives Analyzer
@@ -72,12 +72,33 @@ For complete workflow, see [references/equity-options.md](references/equity-opti
 | `scripts/perpetual_analysis.py` | Crypto perpetual funding & OI analysis |
 | `scripts/options_greeks.py` | Options Greeks analysis & visualization |
 | `scripts/iv_surface.py` | Implied volatility surface plotting |
+| `scripts/vol_signals.py` | Volatility trading signals (TS, Skew, Fly, VRP) |
 
 ## References
 
 - [greeks-filtering.md](references/greeks-filtering.md) - Greeks data filtering patterns
 - [equity-options.md](references/equity-options.md) - US equity options workflow
 - [crypto-derivatives.md](references/crypto-derivatives.md) - Crypto derivatives guide
+- [volatility-trading-strategies.md](references/volatility-trading-strategies.md) - Vol trading strategies (Jeff Liang methodology)
+
+## Volatility Trading Framework
+
+### Core PnL Formula
+```
+Vol Trade PnL = Vega PnL + Gamma Carry + Residuals - Fees
+Smile Carry = Volga Carry + Vanna Carry
+```
+
+### Key Indicators
+
+| Indicator | Formula | Signal |
+|-----------|---------|--------|
+| Term Structure | Far IV - Near IV | Contango = sell calendar |
+| Fly | (25D Call + Put IV)/2 - ATM IV | High = more vol premium |
+| Skew | 25D Put IV - Call IV | Right turn = bullish |
+| VRP | IV - RV | Positive = sell vol |
+
+For complete strategy guide, see [volatility-trading-strategies.md](references/volatility-trading-strategies.md).
 
 ## Common Patterns
 
