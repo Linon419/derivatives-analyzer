@@ -80,6 +80,7 @@ For complete workflow, see [references/equity-options.md](references/equity-opti
 - [equity-options.md](references/equity-options.md) - US equity options workflow
 - [crypto-derivatives.md](references/crypto-derivatives.md) - Crypto derivatives guide
 - [volatility-trading-strategies.md](references/volatility-trading-strategies.md) - Vol trading strategies (Jeff Liang methodology)
+- [advanced-options-framework.md](references/advanced-options-framework.md) - Enhanced skew analysis, Greeks management, position sizing (Greeks.live methodology)
 
 ## Volatility Trading Framework
 
@@ -135,3 +136,41 @@ implied_move = ((1 + cost / price) ** (1 / dte) - 1) * 100
 | Deribit | 20 req/sec | No API key for public data |
 | CBOE | Generous | No explicit limit |
 | yfinance | ~2000/hour | May throttle on heavy use |
+
+## Advanced Analysis Framework
+
+### Three-Chart System (Greeks.live Methodology)
+
+| Chart | Purpose | Key Metric |
+|-------|---------|------------|
+| ATM IV + HV | VRP identification | IV - RV spread |
+| Term Structure | Calendar opportunities | Contango/Backwardation |
+| 25Δ Skew | Directional bias + tail risk | Risk Reversal |
+
+### 25-Delta Indicators
+
+```python
+# Risk Reversal: Directional bias
+rr = call_25d_iv - put_25d_iv  # Positive = bullish
+
+# Butterfly: Tail risk premium
+fly = (call_25d_iv + put_25d_iv) / 2 - atm_iv  # High = more premium
+```
+
+### Position Sizing Rules
+
+| Rule | Threshold |
+|------|-----------|
+| Max single trade loss | ≤ 2% account |
+| Total options allocation | ≤ 20% account |
+| Single asset concentration | ≤ 50% options |
+
+### IV Regime Adjustment
+
+| IV Percentile | Size Multiplier | Rationale |
+|---------------|-----------------|-----------|
+| < 25% | 1.5x | Options cheap |
+| 25-75% | 1.0x | Normal |
+| > 75% | 0.5x | Options expensive |
+
+For complete framework, see [advanced-options-framework.md](references/advanced-options-framework.md).
